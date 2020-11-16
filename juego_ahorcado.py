@@ -6,7 +6,7 @@ class Interfaz():
 		self.ventana=ventana
 		self.ventana.title(('Juego Ahorcado'))
 		self.ventana.resizable(0,0)
-		self.ventana.iconbitmap('icono.ico')
+		self.ventana.iconbitmap('imagenes/icono.ico')
 
 		self.frame1=Frame(self.ventana, bg='#845C32')
 		self.frame1.pack()
@@ -17,9 +17,9 @@ class Interfaz():
 		self.vidas=6
 		self.letras_erroneas=''
 		self.letras_correctas=''
-		self.path_imagenes=('0.png','1.png','2.png','3.png','4.png','5.png','6.png')
 
 		#Labels
+
 		self.label_titulo=Label(self.frame1, text='JUEGO DEL AHORCADO', font=('carnivalee freakshow',40)
 			, fg='#190D00', bg='#4F2C06', relief='raised')
 		self.label_titulo.grid(row=0, padx=10, pady=10)
@@ -68,7 +68,7 @@ class Interfaz():
 			, fg='black', bg='#A58F78', relief='raised', justify='center')
 		self.label_mostrar_vidas.grid(row=10, pady=10)
 
-		self.imagen=PhotoImage(file=self.path_imagenes[self.vidas])
+		self.imagen=PhotoImage(file=('imagenes/6.png'))
 		self.label_imagen=Label(self.frame1, image=self.imagen).grid(row=11, pady=10)
 
 		self.boton_retry=Button(self.frame1, text='Retry', width=10
@@ -83,10 +83,16 @@ class Interfaz():
 	#popup explicación
 	def popup_explicacion(self):
 		popup =Tk()
+		popup.title(('Info'))
 		popup.resizable(0,0)
 		popup.config(bg='#845C32')
+		popup.iconbitmap('imagenes/icono.ico')
 
-		label=Label(popup, text='Escribe una película, sin que te vean, y dale al botón confirmar.\nAhora, tu contrincante deberá introducir una letra y pulsar probar.\nTiene 6 vidas.\n¿Acabará ahorcado?'
+		label=Label(popup, text='Escribe la peli y presiona confirmar.\n'
+			'¡Qué no te vean!\n'
+			'Tu adversario ya puede probar letras\n'
+			'Tiene 6 oportunidades\n'
+			'¿Terminará ahoracado?'
 			, font=('avenir',20), fg='#190D00', bg='#4F2C06', relief='raised')
 		label.pack(side="top", fill="both", pady=10)
 
@@ -98,23 +104,23 @@ class Interfaz():
 	#popup ganaste o perdiste
 	def popup(self, msg):
 		popup =Tk()
+		popup.title(msg)
 		popup.geometry('500x200')
 		popup.resizable(0,0)
 		popup.config(bg='#845C32')
-
-		label=Label(popup, text=msg, font=('carnivalee freakshow',30)
-			, fg='#190D00', bg='#4F2C06', relief='raised')
-		label.pack(side="top", fill="both", pady=10)
+		popup.iconbitmap('imagenes/icono.ico')
 
 		label_peli=Label(popup, text=f'La peli era: {self.peli}', font=('carnivalee freakshow',20)
 			, fg='black', bg='#A58F78', relief='raised', justify='center')
 		label_peli.pack(side="top", fill="both", pady=10)
 
-		boton_close=Button(popup, text="Volver a Jugar", width=15, font=('carnivalee freakshow',14)
-			, fg='white', bg='#1F0F00', pady=10, command = popup.destroy)
-		boton_close.pack()
+		label=Label(popup, text=msg, font=('carnivalee freakshow',30)
+			, fg='#190D00', bg='#4F2C06', relief='raised')
+		label.pack(side="top", fill="both", pady=10)
 
-		self.funcion_retry()
+		boton_close=Button(popup, text="Volver a Jugar", width=15, font=('carnivalee freakshow',14)
+			, fg='white', bg='#1F0F00', pady=10, command = lambda: [popup.destroy(), self.funcion_retry()])
+		boton_close.pack()
 
 		popup.mainloop()
 
@@ -146,11 +152,16 @@ class Interfaz():
 		if self.vidas>0:
 			peli_2=''
 			letra=self.letras.get().upper()
+
+			reemplazar=(('Á','A'),('É','E'),('Í','I'),('Ó','O'),('Ú','U'))
+			for i,j in reemplazar:
+				letra=letra.replace(i,j)
+
 			if letra not in self.peli:
 				if letra not in self.letras_erroneas:
 					self.vidas-=1
 					self.letras_erroneas+=letra+' '
-					self.imagen=PhotoImage(file=self.path_imagenes[self.vidas])
+					self.imagen=PhotoImage(file=('imagenes/'+str(self.vidas)+'.png'))
 					self.label_imagen=Label(self.frame1, image=self.imagen).grid(row=11, pady=10)
 
 				if self.vidas==0:
@@ -195,7 +206,7 @@ class Interfaz():
 		self.label_mostrar_erroneas['text']=''
 		self.boton_confirmacion.config(state='normal')
 		self.boton_probar.config(state='disable')
-		self.imagen=PhotoImage(file=self.path_imagenes[self.vidas])
+		self.imagen=PhotoImage(file=('imagenes/6.png'))
 		self.label_imagen=Label(self.frame1, image=self.imagen).grid(row=11, pady=10)
 
 
