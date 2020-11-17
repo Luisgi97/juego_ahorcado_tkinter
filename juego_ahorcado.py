@@ -1,5 +1,6 @@
 
 from tkinter import *
+from tkinter import messagebox
 
 class Interfaz():
 	def __init__(self,ventana):
@@ -7,11 +8,28 @@ class Interfaz():
 		self.ventana.title(('Juego Ahorcado'))
 		self.ventana.resizable(0,0)
 		self.ventana.iconbitmap('imagenes/icono.ico')
-
 		self.frame1=Frame(self.ventana, bg='#845C32')
 		self.frame1.pack()
 
+		#Barra menu
+
+		barra_menu=Menu(self.ventana)
+
+		menu_inicio=Menu(barra_menu, tearoff=0)
+		menu_inicio.add_command(label='Reiniciar juego', command= lambda: self.funcion_retry())
+		menu_inicio.add_separator()
+		menu_inicio.add_command(label='Salir', command= lambda: self.message_salir())
+		barra_menu.add_cascade(label='Inicio', menu=menu_inicio)
+
+		menu_ayuda=Menu(barra_menu, tearoff=0)
+		menu_ayuda.add_command(label='Instrucciones', command= lambda: self.popup_explicacion())
+		menu_ayuda.add_command(label='Acerca de...', command= lambda: self.message_acerca_de())
+		barra_menu.add_cascade(label='Ayuda', menu=menu_ayuda)
+
+		self.ventana.config(menu=barra_menu)
+
 		#Variables
+
 		self.peli=''
 		self.peli_=''
 		self.vidas=6
@@ -76,25 +94,42 @@ class Interfaz():
 			, command= lambda: self.funcion_retry())
 		self.boton_retry.grid(row=12, pady=10)
 
-		self.popup_explicacion()
-
 
 	#-----------POPUP-------------
+
 	#popup explicación
 	def popup_explicacion(self):
-		popup =Tk()
+		popup =Toplevel(self.ventana)
 		popup.title(('Info'))
 		popup.resizable(0,0)
 		popup.config(bg='#845C32')
 		popup.iconbitmap('imagenes/icono.ico')
 
-		label=Label(popup, text='Escribe la peli y presiona confirmar.\n'
-			'¡Qué no te vean!\n'
-			'Tu adversario ya puede probar letras\n'
-			'Tiene 6 oportunidades\n'
-			'¿Terminará ahoracado?'
-			, font=('avenir',20), fg='#190D00', bg='#4F2C06', relief='raised')
-		label.pack(side="top", fill="both", pady=10)
+		label_titulo=Label(popup, text='INSTRUCCIONES', font=('carnivalee freakshow',30)
+			, fg='#190D00', bg='#4F2C06', relief='raised')
+		label_titulo.pack(side="top", fill="both", pady=10)
+
+		label=Label(popup, text='El juego consiste en adivinar el título de la película, pudiendo probar\n'
+			'letras para ver si estas se encuentran en el título.\n'
+			'\n'
+			'¿Cómo se juega?\n'
+			'\n'
+			'JUGADOR 1:\n'
+			'Escribe la película. ¡Qué no te vean!\n'
+			'Pulsa el botón CONFIRMAR. La película se esconderá.\n'
+			'Si el otro jugador no consigué adivinar la película serás el vencedor.\n'
+			'\n'
+			'JUGADOR 2:\n'
+			'Escribe una letra que creas que se encuentra en el título de la \n'
+			'película y pulsa el botón PROBAR.'
+			'Si esta se encuentra en el título, \n'
+			'se desvelerá, sino, perderás una vida.\n'
+			'¡OJO! Sólo puedes escribir una letra cada vez.\n'
+			'Si desvelas la película antes de perder todas las vidas serás el vencedor.\n'
+			'\n'
+			'¿Terminarás ahorcado?\n'
+			, font=('avenir',14), fg='#190D00', bg='#A58F78', relief='raised', justify='left')
+		label.pack(side="top", fill="both", pady=10, padx=10)
 
 		boton_close=Button(popup, text="Comienza a jugar", width=20, font=('carnivalee freakshow',14)
 			, fg='white', bg='#1F0F00', pady=10, command = popup.destroy)
@@ -103,7 +138,7 @@ class Interfaz():
 
 	#popup ganaste o perdiste
 	def popup(self, msg):
-		popup =Tk()
+		popup =Toplevel(self.ventana, width=500, height=200, bg='#845C32')
 		popup.title(msg)
 		popup.geometry('500x200')
 		popup.resizable(0,0)
@@ -153,43 +188,50 @@ class Interfaz():
 			peli_2=''
 			letra=self.letras.get().upper()
 
-			reemplazar=(('Á','A'),('É','E'),('Í','I'),('Ó','O'),('Ú','U'))
-			for i,j in reemplazar:
-				letra=letra.replace(i,j)
+			if len(letra)!=1:
+				self.message_una_letra()
 
-			if letra not in self.peli:
-				if letra not in self.letras_erroneas:
-					self.vidas-=1
-					self.letras_erroneas+=letra+' '
-					self.imagen=PhotoImage(file=('imagenes/'+str(self.vidas)+'.png'))
-					self.label_imagen=Label(self.frame1, image=self.imagen).grid(row=11, pady=10)
+			else:
+				reemplazar=(('Á','A'),('É','E'),('Í','I'),('Ó','O'),('Ú','U'))
+				for i,j in reemplazar:
+					letra=letra.replace(i,j)
 
-				if self.vidas==0:
+				if letra not in self.peli:
+					if letra not in self.letras_erroneas:
+						self.vidas-=1
+						self.letras_erroneas+=letra+' '
+						self.imagen=PhotoImage(file=('imagenes/'+str(self.vidas)+'.png'))
+						self.label_imagen=Label(self.frame1, image=self.imagen).grid(row=11, pady=10)
+
+					if self.vidas==0:
+						self.entry_letra.config(state='disable')
+						self.boton_probar.config(state='disable')
+						self.popup('¡PERDISTE!')
+					else:
+						self.label_mostrar_vidas['text'] = self.vidas
+						self.label_mostrar_erroneas['text']= self.letras_erroneas
+						self.pelicula.set(self.peli_)
+						
+				else:
+					if letra not in self.letras_correctas:
+						self.letras_correctas+=letra
+					for i in self.peli:
+						if i==' ':
+							peli_2=peli_2+' '
+						elif i in self.letras_correctas:
+							peli_2=peli_2+i
+						else:
+							peli_2=peli_2+'_ '
+					self.peli_=peli_2
+
+				self.letras.set('')
+				self.pelicula.set(self.peli_)
+
+				if self.peli==self.peli_:
 					self.entry_letra.config(state='disable')
 					self.boton_probar.config(state='disable')
-					self.popup('¡PERDISTE!')
-				else:
-					self.label_mostrar_vidas['text'] = self.vidas
-					self.label_mostrar_erroneas['text']= self.letras_erroneas
-					self.pelicula.set(self.peli_)
-			else:
-				if letra not in self.letras_correctas:
-					self.letras_correctas+=letra
-				for i in self.peli:
-					if i==' ':
-						peli_2=peli_2+'  '
-					elif i in self.letras_correctas:
-						peli_2=peli_2+i
-					else:
-						peli_2=peli_2+'_ '
-				self.peli_=peli_2
-			self.letras.set('')
-			self.pelicula.set(self.peli_)
+					self.popup('¡GANASTE!')
 
-			if self.peli==self.peli_:
-				self.entry_letra.config(state='disable')
-				self.boton_probar.config(state='disable')
-				self.popup('¡GANASTE!')
 
 	#función para reiniciar los valores
 	def funcion_retry(self):
@@ -208,6 +250,22 @@ class Interfaz():
 		self.boton_probar.config(state='disable')
 		self.imagen=PhotoImage(file=('imagenes/6.png'))
 		self.label_imagen=Label(self.frame1, image=self.imagen).grid(row=11, pady=10)
+
+
+	#función mensaje salir
+	def message_salir(self):
+		valor=messagebox.askquestion('Salir', '¿Estás seguro?')
+		if valor=='yes':
+			self.ventana.destroy()
+
+
+	#función mensaje Acerca de...
+	def message_acerca_de(self):
+		messagebox.showinfo('Juego del Ahorcado', 'Juego del Ahorcado elaborado por Luis Blanco.')
+
+	#función mensaje una letra
+	def message_una_letra(self):
+		messagebox.showerror('Error', '¡¡No tan rápido cowboy!!\nSólo puedes introducir una letra cada vez.')
 
 
 ventana=Tk()
